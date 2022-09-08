@@ -38,11 +38,11 @@
             </ul>
         </div>
     </nav>
-
+    {% if user.is_authenticated %}
     <!-- Page content -->
     <div class="container-fluid">
             <h2>{{ course.name }}</h2>
-            <form id="questionform" action="point to a submit view" method="post">
+            <form id="questionform" action="{% url 'onlinecourse:submit_questions' %}" method="post">
                 <div class="card-columns-vertical">
                     {% for lesson in course.lesson_set.all %}
                         <div class="card mt-1">
@@ -72,17 +72,10 @@
                     {% endfor %}
                 </div>
             </form> 
-            <!-- Task: show questions and choices -->
-            <!-- <HINT> Use Bootstrap Collapse to hide exam first, more details could be found here
-            https://www.w3schools.com/bootstrap4/bootstrap_collapse.asp-->
-
-           
-           
-            <div id="exam" class="collapse">
-                Click to expand elements within the collapse div
-            </div>
+              
           
 
     </div>
+    {% endif%}
 </body>
 </html>
