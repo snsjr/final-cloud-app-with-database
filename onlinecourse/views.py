@@ -1,3 +1,4 @@
+from django.core import serializers
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 from .models import Course, Enrollment, Question, Choice, Submission
@@ -119,7 +120,11 @@ def submit(request, course_id):
 
     if  is_enrolled and user.is_authenticated:
         enrollment = Enrollment.objects.create(user=user, course=course, mode='honor')
-        submission = Submission.objects.create(enrollment=enrollment ,choices=choices_anwsers )
+        submission = Submission.objects.create(enrollment=enrollment)
+        for choices_anwsers in choices_anwsers:
+            choice = get_object_or_404(Choice, pk=choices_anwsers)
+            submission.choices.add(choice)
+        submission.save()
     
     return HttpResponseRedirect(reverse(viewname='onlinecourse:show_exam_result', args=(course.id, submission.id)))
     
@@ -130,7 +135,7 @@ def extract_answers(request):
     for key in request.POST:
         if key.startswith('choice'):
             value = request.POST[key]
-            choice = get_object_or_404(Choice, pk=int(value))      
+            choice = int(value)     
             submitted_anwsers.append(choice)
     return submitted_anwsers
 
@@ -141,20 +146,20 @@ def extract_answers(request):
         # Get the selected choice ids from the submission record
         # For each selected choice, check if it is a correct answer or not
         # Calculate the total score
-def show_exam_result(request, course_id, submission_id, choices_anwsers):    
+def show_exam_result(request, course_id, submission_id):  
+    grade = 75 
     context = {}
     course = get_object_or_404(Course, pk=course_id)
     submission = get_object_or_404(Submission, pk=submission_id)
+    questions = set()
+    choices = submission.choices.all()
 
-    anwsers_size =  choices_anwsers.size
-    anwsers_corrects = 0
+    for choice in choices:
+        print('PASSOU POR AQUI' + choice.choice_text)
+        questions.add(choice.questions)        
+       
 
-    for choice in choices_anwsers:
-        if choice.is_correct:
-            anwsers_corrects += 1
-
-    
-    grade =  anwsers_corrects /  anwsers_size
+    context['course'] = course
     context['grade'] = grade
     return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
 
